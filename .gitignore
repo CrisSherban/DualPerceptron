@@ -1,0 +1,5 @@
+# Project exclude paths
+/venv/
+/breast_cancer_dataset.csv
+/census_income_dataset.csv
+/venv/

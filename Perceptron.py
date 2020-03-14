@@ -14,7 +14,7 @@ class Perceptron:
         self.R = None
         self.b = None
 
-    # Predicts a a TestSet and returns the accuracy
+    # Predicts a TestSet and returns the accuracy
     def predict_set(self, X, y):
         actual = y
         predicted = []
@@ -60,7 +60,7 @@ class Perceptron:
                     self.alpha[i] = self.alpha[i] + 1
                     self.b += y[i] * (self.R ** 2)
 
-    # Calculate accuracy percentage
+    # Calculates accuracy percentage
     def accuracy(self, actual, predicted):
         correct = 0
         for i in range(len(actual)):

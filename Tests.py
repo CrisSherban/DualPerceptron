@@ -3,12 +3,8 @@ import numpy as np
 import Perceptron as neurone
 
 
-# Convert string column to float
-def str_column_to_float(dataset, column):
-    for row in dataset:
-        row[column] = float(row[column].strip())
-
-
+# Credits attributed to: Jason Brownlee for the following 2 functions:
+# https://machinelearningmastery.com/implement-perceptron-algorithm-scratch-python/
 # Convert string column to integer
 def str_column_to_int(dataset, column):
     class_values = [row[column] for row in dataset]
@@ -21,6 +17,14 @@ def str_column_to_int(dataset, column):
     return lookup
 
 
+# Convert string column to float
+def str_column_to_float(dataset, column):
+    for row in dataset:
+        row[column] = float(row[column].strip())
+
+
+#####################################################################
+
 def setup_dataset(dataset):
     for i in range(0, 14):
         str_column_to_int(dataset, i)
@@ -31,7 +35,7 @@ def setup_dataset(dataset):
         else:
             dataset[i, 14] = 1
 
-    # 39000 entries for the train the rest 9842 for test
+    # 'split' entries for training, the rest are used for testing
     split = 42001
 
     train = (dataset[1:split, :14], dataset[1:split, 14])
@@ -54,8 +58,6 @@ clf_rbf = neurone.Perceptron(kernel="rbf_ker", sigma=5.12)
 clf_linear.fit(X_train, y_train)
 clf_poly.fit(X_train, y_train)
 clf_rbf.fit(X_train, y_train)
-
-# print("Deve uscire: " + str(y_test[0]) + "ma esce: " + str(clf.predict(X_test[0])))
 
 accuracy_linear = clf_linear.predict_set(X_test, y_test)
 accuracy_poly = clf_poly.predict_set(X_test, y_test)
