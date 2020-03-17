@@ -2,4 +2,10 @@
 /venv/
 /breast_cancer_dataset.csv
 /census_income_dataset.csv
-/venv/
+/mushroom_dataset.csv
+/gram_mat_mushroom_linear.csv
+/bank_marketing_dataset.csv
+/gender_voice_dataset.csv
+/gram_mat_gender_voice_dataset.csv
+/ShittyTests.py
+/gram_mat_gender_voice_dataset_linear.csv

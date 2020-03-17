@@ -1,10 +1,12 @@
 import pandas as pd
 import numpy as np
 import Perceptron as neurone
+import GramMatrix as gram_mat
 
 
 # Credits attributed to: Jason Brownlee for the following 2 functions:
 # https://machinelearningmastery.com/implement-perceptron-algorithm-scratch-python/
+
 # Convert string column to integer
 def str_column_to_int(dataset, column):
     class_values = [row[column] for row in dataset]
@@ -17,7 +19,7 @@ def str_column_to_int(dataset, column):
     return lookup
 
 
-# Convert string column to float
+# Convert string column that has float values to column to float
 def str_column_to_float(dataset, column):
     for row in dataset:
         row[column] = float(row[column].strip())
@@ -25,44 +27,74 @@ def str_column_to_float(dataset, column):
 
 #####################################################################
 
-def setup_dataset(dataset):
-    for i in range(0, 14):
-        str_column_to_int(dataset, i)
+def setup_dataset(data, split_train_percentage):
+    data = data[1:, :]  # deletes labels' name
+    np.random.shuffle(data)  # makes sure data is balanced
+    for i in range(0, len(data[1])):
+        try:
+            str_column_to_float(data, i)
+        except:
+            lookup_table = str_column_to_int(data, i)
+            # the following print is needed in order to understand which value
+            # is actually converted in 1 and 0 binary classes
+            if i is len(data[0]) - 1:
+                print(lookup_table)
 
-    for i in range(1, len(dataset[:, 14])):
-        if dataset[i, 14] == "<=50K":
-            dataset[i, 14] = -1
-        else:
-            dataset[i, 14] = 1
+    # data has to be a numpy 2D array that has classes in the last column
+    dataset = dict()
+    dataset['n_rows'] = len(data[:, 0])
+    dataset['n_cols'] = len(data[0, :-1])
+    dataset['x'] = data[:, :(len(data[0]) - 1)]
+    dataset['y'] = data[:, len(data[0]) - 1]
+
+    for i in range(0, dataset['n_rows']):
+        if dataset['y'][i] == 0:
+            dataset['y'][i] = -1
 
     # 'split' entries for training, the rest are used for testing
-    split = 42001
+    split = int((split_train_percentage * dataset['n_rows']) / 100)
 
-    train = (dataset[1:split, :14], dataset[1:split, 14])
-    test = (dataset[split:, :14], dataset[split:, 14])
+    print("Using " + str(split) + " elements for training and "
+          + str(dataset['n_rows'] - split) + " for testing")
+
+    train = {'x': dataset['x'][0:split, :14], 'y': dataset['y'][0:split],
+             'n_rows': split, ' n_cols': dataset['n_cols']}
+
+    test = {'x': dataset['x'][split:, :14], 'y': dataset['y'][split:],
+            'n_rows': dataset['n_rows'] - split, 'n_cols': dataset['n_cols']}
 
     return train, test
 
 
-##################################################################
+#####################___main___##############################
+#############################################################
 
-df = pd.read_csv('census_income_dataset.csv', sep=',', header=None)
-dataset = df.to_numpy()
+# creates Gram matrix if is not given
+print("Loading DATASET and Gram Matrix...")
+df = pd.read_csv('gender_voice_dataset.csv', sep=',', header=None)
+train_set, test_set = setup_dataset(df.to_numpy(), 70)
 
-((X_train, y_train), (X_test, y_test)) = setup_dataset(dataset)
+gram_mat_filename = "gram_mat_gender_voice_dataset_linear.csv"
+try:
+    gram_matrix = np.loadtxt(gram_mat_filename,
+                             dtype=np.float32,
+                             delimiter=',')
+except:
+    print("Creating Gram Matrix")
 
-clf_linear = neurone.Perceptron(kernel="linear_ker")
-clf_poly = neurone.Perceptron(kernel="polynomial_ker", dim=2)
-clf_rbf = neurone.Perceptron(kernel="rbf_ker", sigma=5.12)
+    gram_matrix = gram_mat.calculate_and_save_gram_mat(np.float32(np.float16(train_set['x'])),
+                                                       train_set['n_rows'],
+                                                       gram_mat_filename)
+print("Gram Matrix Loaded")
+#####################################################################
 
-clf_linear.fit(X_train, y_train)
-clf_poly.fit(X_train, y_train)
-clf_rbf.fit(X_train, y_train)
 
-accuracy_linear = clf_linear.predict_set(X_test, y_test)
-accuracy_poly = clf_poly.predict_set(X_test, y_test)
-accuracy_rbf = clf_rbf.predict_set(X_test, y_test)
+clf_linear = neurone.Perceptron(gram_matrix)
 
-print("Kernel Lineare: " + str(accuracy_linear))
-print("Kernel Poly: " + str(accuracy_poly))
-print("Kernel RBF: " + str(accuracy_rbf))
+print("Fitting data")
+clf_linear.fit(train_set)
+print("Finished fitting")
+
+print("Testing the data")
+accuracy_linear = clf_linear.predict_set(test_set)
+print("Linear Kernel Accuracy: " + str(accuracy_linear))

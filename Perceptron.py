@@ -1,37 +1,34 @@
 import numpy as np
+from numpy import savetxt, loadtxt
 
+
+# Some inspiration is taken from:
+# https://github.com/yihui-he/kernel-perceptron/blob/master/kerpercep.py
 
 class Perceptron:
 
-    def __init__(self, kernel="linear_ker", threshold=250, dim=None, sigma=None):
-        self.threshold = threshold
-        self.sigma = sigma
-        self.dim = dim
-        self.kernel = kernel
-        self.X = None
-        self.y = None
+    def __init__(self, gram_mat, epochs=20):
+        self.epochs = epochs
+        self.train = None
+        self.gram_mat = gram_mat
         self.alpha = None
         self.R = None
         self.b = None
 
-    # Predicts a TestSet and returns the accuracy
-    def predict_set(self, X, y):
-        actual = y
+    # Predicts a test_set and returns the accuracy
+    def predict_set(self, test_set):
+        actual = test_set['y']
         predicted = []
-        for i in range(0, len(y)):
-            predicted.append(self.predict(X[i]))
+        for i in range(0, len(test_set['y'])):
+            predicted.append(self.predict(test_set['x'][i]))
         return self.accuracy(actual, predicted)
 
-    def predict(self, xi):
+    def predict(self, an_element):
         summation = 0
 
-        for j in range(0, len(self.X[0])):
-            if self.kernel == "rbf_ker":
-                summation += (self.alpha[j] * self.y[j] * self.rbf_ker(self.X[j], xi, self.sigma)) + self.b
-            if self.kernel == "polynomial_ker":
-                summation += (self.alpha[j] * self.y[j] * self.polynomial_ker(self.X[j], xi, self.dim)) + self.b
-            else:
-                summation += (self.alpha[j] * self.y[j] * self.linear_ker(self.X[j], xi)) + self.b
+        for j in range(0, self.train['n_rows']):
+            summation += (self.alpha[j] * self.train['y'][j] *
+                          np.dot(self.train['x'][j], an_element) + self.b)
 
         if summation > 0:
             activation = 1
@@ -39,40 +36,33 @@ class Perceptron:
             activation = -1
         return activation
 
-    def fit(self, X, y):
-        self.X = X
-        self.y = y
-        self.alpha = np.zeros(len(X[0]))
+    def fit(self, train_set):
+        self.train = train_set
+        self.alpha = np.zeros(self.train['n_rows'])
         self.b = 0
 
+        # calculates R #
         norms = []
 
-        for i in range(0, len(X[0])):
-            norm_of_i = np.linalg.norm(X[i])
+        for i in range(0, self.train['n_rows']):
+            norm_of_i = np.linalg.norm(self.train['x'][i])
             norms.append(norm_of_i)
 
         self.R = max(norms)
+        ###############
 
-        for k in range(0, self.threshold):
-            for i in range(len(X[0])):
-                if y[i] * self.predict(X[i]) <= 0:
-                    # print(self.alpha)
+        for k in range(0, self.epochs):
+            print("alpha: ", self.alpha, " epoch: " + str(k))
+            for i in range(self.train['n_rows']):
+                if self.train['y'][i] * sum(self.alpha * self.train['y'] * self.gram_mat[i] + self.b) <= 0:
                     self.alpha[i] = self.alpha[i] + 1
-                    self.b += y[i] * (self.R ** 2)
+                    self.b += self.train['y'][i] * (self.R ** 2)
 
     # Calculates accuracy percentage
-    def accuracy(self, actual, predicted):
+    @staticmethod
+    def accuracy(actual, predicted):
         correct = 0
         for i in range(len(actual)):
             if actual[i] == predicted[i]:
                 correct += 1
         return correct / float(len(actual)) * 100.0
-
-    def linear_ker(self, x, z):
-        return np.dot(x, z)
-
-    def polynomial_ker(self, x, z, dim):
-        return (np.dot(x, z)) ** dim
-
-    def rbf_ker(self, x, z, sigma):
-        return np.exp(-(np.linalg.norm(x - z) ** 2) / (2.0 * (sigma ** 2)))
