@@ -1,11 +1,14 @@
 # Project exclude paths
 /venv/
 /breast_cancer_dataset.csv
-/census_income_dataset.csv
-/mushroom_dataset.csv
+/ml_datasets/census_income_dataset.csv
+/ml_datasets/mushroom_dataset.csv
 /gram_mat_mushroom_linear.csv
-/bank_marketing_dataset.csv
-/gender_voice_dataset.csv
+/ml_datasets/bank_marketing_dataset.csv
+/ml_datasets/gender_voice_dataset.csv
 /gram_mat_gender_voice_dataset.csv
 /ShittyTests.py
 /gram_mat_gender_voice_dataset_linear.csv
+/mushroom/
+/gender_voice/
+/bank_marketing/

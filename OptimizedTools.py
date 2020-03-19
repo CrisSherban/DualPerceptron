@@ -4,9 +4,9 @@ import numpy as np
 
 @jit(nopython=True, parallel=True)
 def fit(train_x, train_y, epochs, gram_mat):
-    # calculates R, which represents the distance of the furthest element
+    # calculates firstly R, which represents the distance of the furthest element
     norms = np.zeros(len(train_y), dtype=np.float32)
-    for i in range(0, len(train_y)):
+    for i in prange(0, len(train_y)):
         norms[i] = np.linalg.norm(train_x[i])
     R = max(norms)
 

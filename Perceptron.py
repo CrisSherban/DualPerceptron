@@ -12,15 +12,15 @@ class Perceptron:
     sigma = None
     kernel = None
 
-    def __init__(self, gram_mat_filename, _kernel_=1, epochs=500, _dim_=2, _sigma_=5.12):
+    def __init__(self, dataset_path, train_x, train_y, _kernel_=1, epochs=500, _dim_=2, _sigma_=5.12):
         self.epochs = epochs
-        self.train_x = None
-        self.train_y = None
+        self.train_x = train_x
+        self.train_y = train_y
         self.gram_mat = None
         self.R = None
         self.b = None
         self.alpha = None
-        self.gram_mat_filename = gram_mat_filename
+        self.dataset_path = dataset_path
         Perceptron.dim = _dim_
         Perceptron.sigma = _sigma_
         Perceptron.kernel = _kernel_
@@ -41,48 +41,58 @@ class Perceptron:
 
     # Classifies the given element
     def predict_element(self, an_element):
-        summation = 0
 
+        sv = np.loadtxt(str(self.dataset_path) + "/alpha_and_b_"
+                        + str(Perceptron.kernel) + ".csv", delimiter=',')
+
+        types = np.loadtxt(str(self.dataset_path) + "/types.csv", delimiter=',', dtype=str)
+        types = {types[0, 0]: types[0, 1], types[1, 0]: types[1, 1]}
+
+        alpha = sv[:-1]
+        b = sv[-1]
+
+        summation = 0
         for j in range(len(self.train_y)):
             if Perceptron.kernel == 1:
-                summation += (self.alpha[j] * self.train_y[j] *
-                              np.dot(self.train_x[j], an_element) + self.b)
+                summation += (alpha[j] * self.train_y[j] *
+                              np.dot(self.train_x[j], an_element) + b)
             elif Perceptron.kernel == 2:
-                summation += (self.alpha[j] * self.train_y[j] *
-                              (np.dot(self.train_x[j], an_element) + 1) ** Perceptron.dim + self.b)
+                summation += (alpha[j] * self.train_y[j] *
+                              (np.dot(self.train_x[j], an_element) + 1) ** Perceptron.dim + b)
             else:
-                summation += (self.alpha[j] * self.train_y[j] *
+                summation += (alpha[j] * self.train_y[j] *
                               np.exp(-(np.linalg.norm(self.train_x[j] - an_element) ** 2)
-                                     / (2.0 * (Perceptron.sigma ** 2))) + self.b)
+                                     / (2.0 * (Perceptron.sigma ** 2))) + b)
 
         if summation > 0:
             activation = 1
         else:
             activation = -1
-        print("The given element is a: ", activation)
+        print("The given element is: ", types[str(activation)], " AKA: ", activation)
         return activation
 
     # The computation is delegated to OptimizedTools
-    def fit(self, x, y):
-        self.train_x = x
-        self.train_y = y
+    def fit(self):
+        gram_mat_filename = str(self.dataset_path) + "/gram_mat_" + str(Perceptron.kernel) + ".csv"
         try:
             print("Trying to load the Gram Matrix...")
-            self.gram_mat = np.loadtxt(self.gram_mat_filename,
+            self.gram_mat = np.loadtxt(gram_mat_filename,
                                        dtype=np.float32,
                                        delimiter=',')
-            print("Gram Matrix loaded successfully...")
+            print("Gram Matrix loaded successfully")
         except:
             print("Gram Matrix doesn't exist...")
             self.gram_mat = Perceptron.calculate_and_save_gram_mat(np.around(np.float32(self.train_x), decimals=2),
                                                                    len(self.train_y),
-                                                                   self.gram_mat_filename)
+                                                                   gram_mat_filename)
+            print("Gram Matrix created successfully")
 
-        alpha, b = op.fit(x, y, self.epochs, self.gram_mat)
+        alpha, b = op.fit(self.train_x, self.train_y, self.epochs, np.float32(self.gram_mat))
 
         self.alpha = alpha
         self.b = b
-        np.savetxt("alpha_and_b.csv", X=np.append(alpha, b), delimiter=',')
+        np.savetxt(str(self.dataset_path) + "/alpha_and_b_" + str(Perceptron.kernel)
+                   + ".csv", X=np.append(alpha, b), delimiter=',')
 
     # Calculates accuracy percentage
     @staticmethod
@@ -110,7 +120,7 @@ class Perceptron:
                         np.exp(-(np.linalg.norm(train_set[i].ravel()
                                                 - train_set[j].ravel()) ** 2) / (2.0 * (sigma ** 2))))
 
-        print("Gram Matrix calculated... ")
+        print("Gram Matrix calculated")
         return gram_mat
 
     # wrapper method to allow np.savetxt which is not supported yet in Numba
@@ -146,6 +156,8 @@ class Perceptron:
             for i in range(length):
                 if i != j:
                     gram_mat[i][j] = gram_mat[i][j] / max_col_val[j]
+                else:
+                    gram_mat[i][j] = 1
 
         print("Finished flattening Gram Matrix")
         return gram_mat
