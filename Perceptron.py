@@ -1,68 +1,117 @@
 import numpy as np
 import OptimizedTools as op
-from numba import jit, prange
 
 
 # Some inspiration is taken from:
 # https://github.com/yihui-he/kernel-perceptron/blob/master/kerpercep.py
-
 
 class Perceptron:
     dim = None
     sigma = None
     kernel = None
 
-    def __init__(self, dataset_path, train_x, train_y, _kernel_=1, epochs=500, _dim_=2, _sigma_=5.12):
+    def __init__(self, dataset_path, train_x, train_y,
+                 _kernel_=1, epochs=10, _dim_=2, _sigma_=5):
+        """
+            Loads or creates all the necessary files like the Gram Matrix and sets
+            all necessary variables in the class. It also looks for a file containing
+            pre-trained data like "alpha"s and "b"s.
+        :param dataset_path: String
+                        path were the already prepared dataset is situated
+        :param train_x: array_like
+                        a train set in the form of an ndarray containing all test elements
+        :param train_y: array_like
+                        an ndarray containing binary classes, it can take values 1 or -1
+                        it has the same number of rows as train_x
+        :param _kernel_: int
+                        1: Linear, 2: Polynomial, 3: Gaussian
+        :param epochs: int
+                        maximum number of epochs
+        :param _dim_: int
+        :param _sigma_: float
+        """
+
         self.epochs = epochs
-        self.train_x = train_x
-        self.train_y = train_y
+        self.train_x = np.ascontiguousarray(train_x, dtype=np.float32)
+        self.train_y = np.ascontiguousarray(train_y, dtype=np.float32)
         self.gram_mat = None
         self.R = None
-        self.b = None
-        self.alpha = None
         self.dataset_path = dataset_path
         Perceptron.dim = _dim_
         Perceptron.sigma = _sigma_
         Perceptron.kernel = _kernel_
 
-    # Predicts a test_set and returns the accuracy
-    # The computation is delegated to OptimizedTools
+        try:
+            sv = np.loadtxt(str(self.dataset_path) + "/alpha_and_b_"
+                            + str(Perceptron.kernel) + ".csv", delimiter=',')
+
+            self.alpha = sv[:-1]
+            self.b = sv[-1]
+        except:
+            print("Alphas an b yet to compute")
+
+        gram_mat_filename = str(self.dataset_path) + "/gram_mat_" + str(Perceptron.kernel) + ".npy"
+
+        try:
+            print("Trying to load the Gram Matrix...")
+            self.gram_mat = np.load(gram_mat_filename)
+            print("Gram Matrix loaded successfully")
+        except:
+            print("Gram Matrix doesn't exist...")
+            self.gram_mat = np.ascontiguousarray(Perceptron.calculate_and_save_gram_mat(self.train_x,
+                                                                                        gram_mat_filename),
+                                                 dtype=np.float32)
+
+            print("Gram Matrix created successfully")
+
     def predict_set(self, test_x, test_y):
-        actual, predicted = op.predict_set(self.train_x,
-                                           self.train_y,
-                                           test_x,
-                                           test_y,
-                                           alpha=self.alpha,
-                                           b=self.b,
-                                           kernel=Perceptron.kernel,
-                                           dim=Perceptron.dim,
-                                           sigma=Perceptron.sigma)
-        return self.accuracy(actual, predicted)
+        """
+            Predicts a test_set and returns the accuracy
+            The computation is delegated to OptimizedTools
+        :param test_x: array_like
+                        a test set in the form of an ndarray containing all test elements
 
-    # Classifies the given element
+        :param test_y: array_like
+                        an ndarray containing binary classes, it can take values 1 or -1
+        :return: ndarray
+                        an ndarray containing predicted values that can be 1 or -1
+        """
+
+        return op.predict_set(self.train_x,
+                              self.train_y,
+                              np.ascontiguousarray(test_x, dtype=np.float32),
+                              np.ascontiguousarray(test_y, dtype=np.float32),
+                              alpha=self.alpha,
+                              b=self.b,
+                              kernel=Perceptron.kernel,
+                              dim=Perceptron.dim,
+                              sigma=Perceptron.sigma)
+
     def predict_element(self, an_element):
+        """
+            Classifies a given element
+        :param an_element: ndarray
+        :return: int
+                1 or -1
+        """
 
-        sv = np.loadtxt(str(self.dataset_path) + "/alpha_and_b_"
-                        + str(Perceptron.kernel) + ".csv", delimiter=',')
-
+        # the classes of the dataset are converted to numerical values
+        # thus here we are retrieving corresponding names
         types = np.loadtxt(str(self.dataset_path) + "/types.csv", delimiter=',', dtype=str)
         types = {types[0, 0]: types[0, 1], types[1, 0]: types[1, 1]}
-
-        alpha = sv[:-1]
-        b = sv[-1]
 
         summation = 0
         for j in range(len(self.train_y)):
             if Perceptron.kernel == 1:
-                summation += (alpha[j] * self.train_y[j] *
-                              np.dot(self.train_x[j], an_element) + b)
+                summation += (self.alpha[j] * self.train_y[j] *
+                              np.dot(self.train_x[j], an_element) + self.b)
             elif Perceptron.kernel == 2:
-                summation += (alpha[j] * self.train_y[j] *
-                              (np.dot(self.train_x[j], an_element) + 1) ** Perceptron.dim + b)
+                summation += (self.alpha[j] * self.train_y[j] *
+                              (np.dot(self.train_x[j], an_element) + 1) ** Perceptron.dim + self.b)
             else:
-                summation += (alpha[j] * self.train_y[j] *
+                summation += (self.alpha[j] * self.train_y[j] *
                               np.exp(-(np.linalg.norm(self.train_x[j] - an_element) ** 2)
-                                     / (2.0 * (Perceptron.sigma ** 2))) + b)
+                                     / (2.0 * (Perceptron.sigma ** 2))) + self.b)
 
         if summation > 0:
             activation = 1
@@ -71,109 +120,60 @@ class Perceptron:
         print("The given element is: ", types[str(activation)], " AKA: ", activation)
         return activation
 
-    # The computation is delegated to OptimizedTools
     def fit(self):
-        gram_mat_filename = str(self.dataset_path) + "/gram_mat_" + str(Perceptron.kernel) + ".csv"
-        try:
-            print("Trying to load the Gram Matrix...")
-            self.gram_mat = np.loadtxt(gram_mat_filename,
-                                       dtype=np.float32,
-                                       delimiter=',')
-            print("Gram Matrix loaded successfully")
-        except:
-            print("Gram Matrix doesn't exist...")
-            self.gram_mat = Perceptron.calculate_and_save_gram_mat(np.around(np.float32(self.train_x), decimals=2),
-                                                                   len(self.train_y),
-                                                                   gram_mat_filename)
-            print("Gram Matrix created successfully")
+        """
+            Fits according to the dual perceptron example in :
+            "Nello Cristianini, John Shawe-Taylor - An Introduction to
+                Support Vector Machines and Other Kernel-based Learning Methods, 1999"
 
-        alpha, b = op.fit(self.train_x, self.train_y, self.epochs, np.float32(self.gram_mat))
+            The computation is delegated to OptimizedTools
+            Finally the corresponding parameters that are crucial in the dual form
+            of the hyperplane are saved in a .csv file
+        :return: None
+        """
 
-        self.alpha = alpha
-        self.b = b
+        self.alpha, self.b = op.fit(self.train_x,
+                                    self.train_y,
+                                    np.ascontiguousarray(self.gram_mat, dtype=np.float32),
+                                    self.epochs)
+
         np.savetxt(str(self.dataset_path) + "/alpha_and_b_" + str(Perceptron.kernel)
-                   + ".csv", X=np.append(alpha, b), delimiter=',')
+                   + ".csv", X=np.append(self.alpha, self.b), delimiter=',')
+        return self.alpha, self.b
 
-    # Calculates accuracy percentage
+    def set_epochs(self, epochs):
+        self.epochs = epochs
+
+    def set_kernel(self, kernel):
+        self.kernel = kernel
+
     @staticmethod
-    def accuracy(actual, predicted):
+    def accuracy(actual_labels, predicted_labels):
+        """
+            Calculates accuracy percentage
+        """
+
         correct = 0
-        for i in range(len(actual)):
-            if actual[i] == predicted[i]:
+        for i in range(len(actual_labels)):
+            if actual_labels[i] == predicted_labels[i]:
                 correct += 1
-        return correct / float(len(actual)) * 100.0
+        return correct / float(len(actual_labels)) * 100.0
 
     @staticmethod
-    @jit(nopython=True, parallel=True)
-    def calculate_gram_mat(train_set, length, gram_mat, kernel, dim, sigma):
-        print("Calculating Gram Matrix...")
-        for i in prange(length):
-            for j in range(length):
-                if kernel == 1:
-                    gram_mat[i][j] = np.float32(
-                        np.dot(train_set[i].ravel(), train_set[j].ravel()))
-                elif kernel == 2:
-                    gram_mat[i][j] = np.float32(
-                        (np.dot(train_set[i].ravel(), train_set[j].ravel()) + 1) ** dim)
-                else:
-                    gram_mat[i][j] = np.float32(
-                        np.exp(-(np.linalg.norm(train_set[i].ravel()
-                                                - train_set[j].ravel()) ** 2) / (2.0 * (sigma ** 2))))
+    def calculate_and_save_gram_mat(train_set, file_name):
+        """
+            This is a wrapper method to allow np.save which is not supported in Numba yet
+        :param train_set: array_like
+                            a train set in the form of an ndarray containing all test elements
+        :param file_name: String
+                            desired file name of the gram mat
+        :return: ndarray
+        """
 
-        print("Gram Matrix calculated")
+        gram_mat = op.calculate_gram_mat(np.ascontiguousarray(train_set, dtype=np.float32),
+                                         Perceptron.kernel,
+                                         Perceptron.dim,
+                                         Perceptron.sigma)
+
+        np.save(file=file_name, arr=gram_mat, )
         return gram_mat
-
-    # wrapper method to allow np.savetxt which is not supported yet in Numba
-    @staticmethod
-    def calculate_and_save_gram_mat(train_set, length, csv_file_name):
-        gram_mat_init = np.empty([length, length], dtype=np.float32)
-
-        gram_mat = Perceptron.calculate_gram_mat(train_set, length, gram_mat_init,
-                                                 Perceptron.kernel,
-                                                 Perceptron.dim,
-                                                 Perceptron.sigma)
-
-        # gram_mat = Perceptron.flatten_gram_mat(gram_mat, length)
-
-        np.savetxt(fname=csv_file_name, X=gram_mat, delimiter=',')
-        return gram_mat
-
-    @staticmethod
-    @jit(nopython=True, parallel=True)
-    def flatten_gram_mat(gram_mat, length):
-        print("Flattening Gram Matrix...")
-        max_col_val = np.zeros(length, dtype=np.float32)
-
-        # finding max element of each column
-        for j in prange(length):
-            max_col_val[j] = 0
-            for i in range(length):
-                if i != j and max_col_val[j] < gram_mat[i][j]:
-                    max_col_val[j] = gram_mat[i][j]
-
-        # flattens the values
-        for j in prange(length):
-            for i in range(length):
-                if i != j:
-                    gram_mat[i][j] = gram_mat[i][j] / max_col_val[j]
-                else:
-                    gram_mat[i][j] = 1
-
-        print("Finished flattening Gram Matrix")
-        return gram_mat
-
-
-###########################################################
-'''
-# KERNELS #
-def linear_ker(x, z):
-    return np.dot(x, z)
-
-
-def polynomial_ker(x, z, dim=2):
-    return (np.dot(x, z) + 1) ** dim
-
-
-def rbf_ker(x, z, sigma=5.12):
-    return np.exp(-(np.linalg.norm(x - z) ** 2) / (2.0 * (sigma ** 2)))
-'''
