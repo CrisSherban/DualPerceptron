@@ -2,7 +2,7 @@
 
 
 ### Usage
-*   #### Perceptron Class:  
+*   ### Perceptron Class:  
     *   In this implementation the Perceptron offers several methods
         for different use cases.  
         The Perceptron automatically creates or loads a Gram Matrix accordingly to 
@@ -25,12 +25,12 @@
             clf.predict_element(an_element)
         ``` 
 
-*   #### OptimizedTools.py
+*   ### OptimizedTools.py
     This files is the heart of the perceptron, it can't be used as a standalone.
     A Perceptron object delegates the fitting, the prediction and the creation of a 
     Gram Matrix to this file.
     
-*   #### DatasetTools.py
+*   ### DatasetTools.py
     This python file loads a dataset properly for a Perceptron,
     for example, it contains functions to normalize the dataset and 
     to convert string features to numerical features. 
@@ -41,7 +41,7 @@
                                             normalize=False, standardize=False)
     ```  
     
-*   #### KernelValidation.py
+*   ### KernelValidation.py
     This .py script plots a gram matrix of some given dataset.
     The dataset is pre-ordered based on the labels so the gram 
     matrix can be used to visualize the classes of the dataset
@@ -50,7 +50,7 @@
     This is an example of the output:  
     <img src="/Pictures/gender_voice_gram_mat_3_ordered.png" width="400px">  
     
-*   #### Plotter.py
+*   ### Plotter.py
     This file contains two functions to plot the hyperplane and the elements 
     in 2D or 3D. The datasets used have more than three features so the output 
     in this case is just for the scope of the illustration.
@@ -69,7 +69,24 @@
     ```
         convert -delay 10 plot_step*.png animated_plot.gif
     ```
-    <img src=""/3D_plots/animated_plot.gif" width="400px">
+    <img src="/3D_plots/animated_plot.gif" width="400px">  
+    
+*   ### Test.py
+    This file can be used to test everything out, for example,it can be used to analyze results and accuracies
+    with various kernels. The function that does that is called `analyze_accuracies(datasets_names)`
+    which creates for each dataset three different classifiers with different kernels, then trains each
+    classifier for 10 epochs and chooses the epoch that performs best. So for each epoch the classifier
+    is trained and tested. Finally it prints a bar chart of the accuracies so the user can verify the results.  
+    The user can choose to set the boolean variable test_on_train to True, this allows the function 
+    to analyze the training set as a test set. 
+    Basic usage:   
+    
+    ```python
+    datasets_names = ["bank_marketing", "gender_voice", "mushroom"]
+    analyze_accuracies(datasets_names, test_on_train=False)
+    ```   
+    
+    
             
     
         
