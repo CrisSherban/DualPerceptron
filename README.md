@@ -5,6 +5,8 @@
 *   #### Perceptron Class:  
     *   In this implementation the Perceptron offers several methods
         for different use cases.  
+        The Perceptron automatically creates or loads a Gram Matrix accordingly to 
+        the given kernel.  
         For example: to train and test on a given dataset one must create 
         a Perceptron first, then use the method fit() and finally the method 
         predict_set() as follows:  
@@ -17,13 +19,11 @@
             accuracy = clf.accuracy(test_y, predicted)  
         ```
         
-    *    The Perceptron automatically creates or loads a Gram Matrix accordingly to 
-        the given kernel.  
-        One can also predict a single element:  
+    *   One can also predict a single element:  
         
-        ~~~python
+        ```python
             clf.predict_element(an_element)
-        ~~~ 
+        ``` 
 
 *   #### OptimizedTools.py
     This files is the heart of the perceptron, it can't be used as a standalone.
@@ -37,7 +37,8 @@
     This is an example of a basic usage:  
     
     ```python
-        train_set, test_set = load_dataset(dataset_name, split_train_percentage, normalize=False, standardize=False)
+        train_set, test_set = load_dataset(dataset_name, split_train_percentage,
+                                            normalize=False, standardize=False)
     ```  
     
 *   #### KernelValidation.py
@@ -47,7 +48,7 @@
     It is meant to be used as a standalone in this project.
     
     This is an example of the output:  
-    <img src="/Pictures/gender_voice_gram_mat_3_ordered.png" width="200px">  
+    <img src="/Pictures/gender_voice_gram_mat_3_ordered.png" width="400px">  
     
 *   #### Plotter.py
     This file contains two functions to plot the hyperplane and the elements 
@@ -57,9 +58,8 @@
     ```python
         Plotter.plot_2d(clf, X, y)
     ```  
-    
-    ![2D plot](Pictures/2D Hyperplane Decision Boundary gender_voice.png)
-    
+    <img src="/Pictures/2D Hyperplane Decision Boundary gender_voice.png" width="400px">
+        
     The 3D plot function can be used as follows:
     ```python
         Plotter.plot_3d(clf, X, y)
@@ -69,7 +69,7 @@
     ```
         convert -delay 10 plot_step*.png animated_plot.gif
     ```
-    ![3D plot](3D_plots/animated_plot.gif)
+    <img src=""/3D_plots/animated_plot.gif" width="400px">
             
     
         
