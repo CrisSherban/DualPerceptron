@@ -8,11 +8,11 @@ available in Report.pdf
 *   ### Perceptron Class:  
     *   In this implementation the Perceptron offers several methods
         for different use cases.  
-        The Perceptron automatically creates or loads a Gram Matrix according to 
+        The Perceptron constructor creates or loads a Gram Matrix according to 
         the given kernel.  
-        For example: to train and test on a given dataset one must create 
-        a Perceptron first, then use the method fit() and finally the method 
-        predict_set() as follows:  
+        Let's explore an example of usage: to train and test on a given dataset one must create 
+        a Perceptron first, then use the method `fit()` and finally the method 
+        `predict_set()` as follows:  
         
         ```python  
             clf = Perceptron.Perceptron(dataset_name, train_x, train_y, 
