@@ -1,11 +1,14 @@
 # DualPerceptron
 
+### Documentation & Citations
+Documentation of the study and the complete list of citations and credits are
+available in Report.pdf
 
 ### Usage
 *   ### Perceptron Class:  
     *   In this implementation the Perceptron offers several methods
         for different use cases.  
-        The Perceptron automatically creates or loads a Gram Matrix accordingly to 
+        The Perceptron automatically creates or loads a Gram Matrix according to 
         the given kernel.  
         For example: to train and test on a given dataset one must create 
         a Perceptron first, then use the method fit() and finally the method 
