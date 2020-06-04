@@ -148,11 +148,6 @@ def analyze_accuracies(datasets_names, test_on_train=False):
 dataset_name = "gender_voice"
 train_set, test_set = dt.load_dataset(dataset_name, 70, standardize=True)
 
-# full_dataset is used to plot graphs
-full_dataset = np.vstack((train_set, test_set))
-X = full_dataset[:, :-1]
-Y = full_dataset[:, -1]
-
 clf = Perceptron.Perceptron(dataset_name,
                             train_set[:, :-1],
                             train_set[:, -1],
@@ -166,6 +161,11 @@ accuracy = clf.accuracy(train_set[:, -1], predicted)
 print("Kernel Best Accuracy with 10 maximum epochs: ", best_epoch(clf, test_set, 10))
 
 '''
+# full_dataset is used to plot graphs
+full_dataset = np.vstack((train_set, test_set))
+X = full_dataset[:, :-1]
+Y = full_dataset[:, -1]
+
 # plotter functions to visualize the dataset and the hyperplane
 Plotter.plot_3d(clf, X, Y)
 Plotter.plot_2d(clf, X, Y)
@@ -176,13 +176,12 @@ Plotter.plot_2d(clf, X, Y)
 sns.set(style="ticks", color_codes=True)
 tmp_dataset = np.loadtxt("ml_datasets/mushroom_dataset.csv", delimiter=',', dtype=str)
 tmp_dataset = tmp_dataset[0, :]
-#full_dataset = np.vstack((tmp_dataset, full_dataset))
 
 
 df = pd.DataFrame(data=full_dataset, columns=tmp_dataset)
 df.dropna(inplace=True)
 sns.pairplot(df, vars=["cap-shape", "cap-surface", "cap-color"], hue='mushroom', corner=True)
-plt.savefig("Pictures/" + str(dataset_name) + " scatterplot.png")
+# plt.savefig("Pictures/" + str(dataset_name) + " scatterplot.png")
 plt.show()
 '''
 
