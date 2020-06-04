@@ -22,7 +22,7 @@
         One can also predict a single element:  
         
         ```python
-            clf.predict_element(self, an_element)
+            clf.predict_element(an_element)
         ```  
 
 *   #### OptimizedTools.py
