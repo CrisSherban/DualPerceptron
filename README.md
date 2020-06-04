@@ -19,11 +19,11 @@
         
     *    The Perceptron automatically creates or loads a Gram Matrix accordingly to 
         the given kernel.  
-        One can also predict a single element:
+        One can also predict a single element:  
         
         ```python
             clf.predict_element(self, an_element)
-        ```
+        ```  
 
 *   #### OptimizedTools.py
     This files is the heart of the perceptron, it can't be used as a standalone.
@@ -34,11 +34,11 @@
     This python file loads a dataset properly for a Perceptron,
     for example, it contains functions to normalize the dataset and 
     to convert string features to numerical features. 
-    This is an example of a basic usage:
+    This is an example of a basic usage:  
     
     ```python
-       train_set, test_set = load_dataset(dataset_name, split_train_percentage, normalize=False, standardize=False)
-    ```
+        train_set, test_set = load_dataset(dataset_name, split_train_percentage, normalize=False, standardize=False)
+    ```  
     
 *   #### KernelValidation.py
     This .py script plots a gram matrix of some given dataset.
@@ -46,7 +46,7 @@
     matrix can be used to visualize the classes of the dataset
     It is meant to be used as a standalone in this project.
     
-    This is an example of the output:  
+    This is an example of the output:    
     ![Gram_Matrix](Pictures/gender_voice_gram_mat_3_ordered.png)
     
 *   #### Plotter.py
@@ -56,7 +56,8 @@
     Basic usage:
     ```python
         Plotter.plot_2d(clf, X, y)
-    ```
+    ```  
+    
     ![2D plot](Pictures/2D Hyperplane Decision Boundary gender_voice.png)
     
     The 3D plot function can be used as follows:
