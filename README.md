@@ -21,9 +21,9 @@
         the given kernel.  
         One can also predict a single element:  
         
-        ```python
+        ~~~python
             clf.predict_element(an_element)
-        ```  
+        ~~~ 
 
 *   #### OptimizedTools.py
     This files is the heart of the perceptron, it can't be used as a standalone.
@@ -46,8 +46,8 @@
     matrix can be used to visualize the classes of the dataset
     It is meant to be used as a standalone in this project.
     
-    This is an example of the output:    
-    ![Gram_Matrix](Pictures/gender_voice_gram_mat_3_ordered.png)
+    This is an example of the output:  
+    <img src="/Pictures/gender_voice_gram_mat_3_ordered.png" width="200px">  
     
 *   #### Plotter.py
     This file contains two functions to plot the hyperplane and the elements 
