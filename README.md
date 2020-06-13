@@ -2,7 +2,7 @@
 
 ### Documentation & Citations
 Documentation of the study and the complete list of citations and credits are
-available in Report.pdf
+available in [Report.pdf](https://github.com/CrisSherban/DualPerceptron/blob/master/Report.pdf)
 
 ### Usage
 *   ### Perceptron Class:  
@@ -22,7 +22,7 @@ available in Report.pdf
             accuracy = clf.accuracy(test_y, predicted)  
         ```
         
-    *   One can also predict a single element:  
+    *   It is also possible to predict a single element:  
         
         ```python
             clf.predict_element(an_element)
@@ -42,6 +42,12 @@ available in Report.pdf
     ```python
         train_set, test_set = load_dataset(dataset_name, split_train_percentage,
                                             normalize=False, standardize=False)
+    ```  
+    The file also includes a function that allows to test the 
+    linear separability of a given dataset using scipy.optimize.linprog()  
+    
+    ```python
+        print(verify_linear_separability(train_set, test_set))
     ```  
     
 *   ### KernelValidation.py
@@ -73,6 +79,19 @@ available in Report.pdf
         convert -delay 10 plot_step*.png animated_plot.gif
     ```
     <img src="/3D_plots/animated_plot.gif" width="400px">  
+    
+*   ### NaiveCrossValidation.py
+    This script can be used to tune the parameters of the Kernels.
+    In the current version this is a naive implementation that just 
+    chooses the best out of a series of
+    pre-determined parameters and then prints them.
+    Usage:  
+    ```python
+        dataset_name = "mushroom"
+        train_set, test_set = dt.load_dataset(dataset_name, 70, standardize=True)
+
+        cross_validate_parameters(dataset_name, train_set, test_set)
+    ```  
     
 *   ### Test.py
     This file can be used to test everything out, for example,it can be used to analyze results and accuracies

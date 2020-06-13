@@ -36,21 +36,7 @@ for i in range(0, rows):
         dataset[i, -1] = -1
 print(dataset)
 
-ordered_dataset = dataset
-index = 0
-
-for i in range(len(dataset[:, 0])):
-    if dataset[i, -1] == 1:
-        ordered_dataset[index] = dataset[i]
-        index += 1
-print("Elements relative to label 1: ", index)
-first_class_elements = index
-
-for i in range(len(dataset[:, 0])):
-    if dataset[i, -1] != 1:
-        ordered_dataset[index] = dataset[i]
-        index += 1
-print("Elements relative to label -1: ", index - first_class_elements)
+ordered_dataset, first_class_elements = dt.order_dataset(dataset)
 
 gram_mat = ot.calculate_gram_mat(np.ascontiguousarray(ordered_dataset, dtype=np.float32), kernel=3, sigma=1, dim=2)
 

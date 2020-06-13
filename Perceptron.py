@@ -50,7 +50,8 @@ class Perceptron:
         except:
             print("Alphas an b yet to compute")
 
-        gram_mat_filename = str(self.dataset_path) + "/gram_mat_" + str(Perceptron.kernel) + ".npy"
+        gram_mat_filename = str(self.dataset_path) + "/gram_mat_" + str(Perceptron.kernel) + "_" + \
+                            str(Perceptron.dim) + "_" + str(Perceptron.sigma) + ".npy"
 
         try:
             print("Trying to load the Gram Matrix...")
@@ -175,5 +176,5 @@ class Perceptron:
                                          Perceptron.dim,
                                          Perceptron.sigma)
 
-        np.save(file=file_name, arr=gram_mat, )
+        np.save(file=file_name, arr=gram_mat)
         return gram_mat

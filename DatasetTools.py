@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from scipy.optimize import linprog
 
 
 # Credits attributed to: Jason Brownlee for the following 2 functions:
@@ -39,6 +40,57 @@ def standardize_dataset(dataset):
         for i in range(len(dataset[:, 0])):
             dataset[i, j] = (dataset[i, j] - mean) / std
     return dataset
+
+
+def order_dataset(dataset):
+    ordered_dataset = dataset
+    index = 0
+
+    for i in range(len(dataset[:, 0])):
+        if dataset[i, -1] == 1:
+            ordered_dataset[index] = dataset[i]
+            index += 1
+    first_class_elements = index + 1
+    print("Elements relative to label 1: ", first_class_elements)
+
+    for i in range(len(dataset[:, 0])):
+        if dataset[i, -1] != 1:
+            ordered_dataset[index] = dataset[i]
+            index += 1
+    print("Elements relative to label -1: ", index - first_class_elements)
+
+    return ordered_dataset, first_class_elements
+
+
+def verify_linear_separability(train_set, test_set):
+    """
+        Verifies linear separability of a given dataset
+        highly based upon the explanation of Raffael Vogler:
+        https://www.joyofdata.de/blog/testing-linear-separability-linear-programming-r-glpk/
+
+    :param train_set: ndarray of a train_set after a setup_dataset()
+    :param test_set: ndarray of test_set after a setup_dataset()
+    :return: true if the entire dataset is linearly separable
+            false otherwise
+    """
+
+    dataset = np.vstack((train_set, test_set))
+    ordered_dataset, first_class_elements = order_dataset(dataset)
+
+    c = np.zeros(len(train_set[0]))
+
+    # the last column is used for the beta coefficients
+    positive_examples = ordered_dataset[:first_class_elements, :]
+    negative_examples = ordered_dataset[first_class_elements:, :]
+
+    positive_examples[:, :-1] = -positive_examples[:, :-1]
+
+    A = np.vstack((positive_examples, negative_examples))
+    b = - np.ones(len(dataset[:, 0]))
+
+    res = linprog(c, A_ub=A, b_ub=b)
+
+    return res['success']
 
 
 def setup_dataset(data, split_train_percentage, normalize, standardize):

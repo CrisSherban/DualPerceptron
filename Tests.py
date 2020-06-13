@@ -7,6 +7,7 @@ from sklearn.linear_model import Perceptron as SkPerceptron
 import DatasetTools as dt
 import Perceptron
 import Plotter
+import NaiveCrossValidation as cv
 
 
 ###################### testing functions ##########################
@@ -37,14 +38,15 @@ def find_max_accuracy(accuracies):
     return best_accuracy, best_accuracy_index
 
 
-def test_for_each_kernel(dataset_name, train_set, test_set, max_epochs, test_on_train):
+def test_for_each_kernel(dataset_name, train_set, test_set, max_epochs, test_on_train, dataset_index):
     best_accuracies_per_kernel = {}
     for i in range(1, 4):
         clf = Perceptron.Perceptron(dataset_name,
                                     train_set[:, :-1],
                                     train_set[:, -1],
                                     _kernel_=i, epochs=10,
-                                    _sigma_=5, _dim_=5)
+                                    _sigma_=cv.best_parameters[i - 1, dataset_index],
+                                    _dim_=cv.best_parameters[i - 1, dataset_index])
         best_epoch_accuracy, best_epoch_accuracy_index = best_epoch(clf, test_set, max_epochs)
 
         if test_on_train:
@@ -52,18 +54,21 @@ def test_for_each_kernel(dataset_name, train_set, test_set, max_epochs, test_on_
                                               train_set[:, :-1],
                                               train_set[:, -1],
                                               _kernel_=i, epochs=best_epoch_accuracy_index,
-                                              _sigma_=5, _dim_=5)
+                                              _sigma_=cv.best_parameters[i - 1, dataset_index],
+                                              _dim_=cv.best_parameters[i - 1, dataset_index])
             clf_train.fit()
             predicted = clf_train.predict_set(train_set[:, :-1], train_set[:, -1])
             best_epoch_accuracy = clf_train.accuracy(train_set[:, -1], predicted)
 
         best_accuracies_per_kernel[i] = best_epoch_accuracy
 
+    '''
     if not test_on_train:
         # adding the results from sklearn perceptron
         clf = SkPerceptron(tol=1e-3, random_state=0)
         clf.fit(train_set[:, :-1], train_set[:, -1])
         best_accuracies_per_kernel[4] = clf.score(train_set[:, :-1], train_set[:, -1]) * 100
+    '''
 
     return best_accuracies_per_kernel
 
@@ -75,10 +80,12 @@ def test_for_each_dataset(max_epochs, dataset_names, test_on_train):
     and for values the relative accuracy
     '''
     best_accuracies_per_kernel_per_dataset = []
+    dataset_index = 0
     for dataset in dataset_names:
         train_set, test_set = dt.load_dataset(dataset, 70)
         best_accuracies_per_kernel_per_dataset.append(
-            test_for_each_kernel(dataset, train_set, test_set, max_epochs, test_on_train))
+            test_for_each_kernel(dataset, train_set, test_set, max_epochs, test_on_train, dataset_index))
+        dataset_index += 1
 
     return best_accuracies_per_kernel_per_dataset
 
@@ -90,19 +97,21 @@ def analyze_accuracies(datasets_names, test_on_train=False):
     linear_ker = [round(best_accuracies_per_kernel_per_dataset[i][1], 1) for i in range(len(datasets_names))]
     poly_ker = [round(best_accuracies_per_kernel_per_dataset[i][2], 1) for i in range(len(datasets_names))]
     gaussian_ker = [round(best_accuracies_per_kernel_per_dataset[i][3], 1) for i in range(len(datasets_names))]
-    if not test_on_train:
+    '''if not test_on_train:
         sklearn_perceptron = [round(best_accuracies_per_kernel_per_dataset[i][4], 1) for i in
                               range(len(datasets_names))]
+    '''
 
     x = np.arange(len(labels))  # the label locations
     width = 0.2  # the width of the bars
 
     fig, ax = plt.subplots()
-    rects1 = ax.bar(x - 0.3, linear_ker, width, label='linear_ker')
-    rects2 = ax.bar(x - 0.1, poly_ker, width, label='poly_ker')
-    rects3 = ax.bar(x + 0.1, gaussian_ker, width, label='gaussian_ker')
-    if not test_on_train:
+    rects1 = ax.bar(x - 0.2, linear_ker, width, label='linear_ker')
+    rects2 = ax.bar(x, poly_ker, width, label='poly_ker')
+    rects3 = ax.bar(x + 0.2, gaussian_ker, width, label='gaussian_ker')
+    '''if not test_on_train:
         rects4 = ax.bar(x + 0.3, sklearn_perceptron, width, label='sklearn_perceptron')
+    '''
 
     ax.set_ylabel('Accuracy')
     ax.set_xticks(x)
@@ -122,13 +131,15 @@ def analyze_accuracies(datasets_names, test_on_train=False):
     autolabel(rects1)
     autolabel(rects2)
     autolabel(rects3)
+    '''
     if not test_on_train:
         autolabel(rects4)
+    '''
 
     fig.tight_layout()
 
     if not test_on_train:
-        ax.set_title('Comparison between kernels and sklearn perceptron')
+        ax.set_title('Comparison between kernels')
         plt.savefig("Accuracies.png")
 
     else:
@@ -139,54 +150,62 @@ def analyze_accuracies(datasets_names, test_on_train=False):
 
 
 #####################___main script___##############################
-# kernels: 1: Linear, 2: Poly, 3: Gaussian
+def main():
+    # kernels: 1: Linear, 2: Poly, 3: Gaussian
 
-# datasets_names = ["bank_marketing", "gender_voice", "mushroom"]
-# analyze_accuracies(datasets_names, test_on_train=True)
+    # datasets_names = ["bank_marketing", "gender_voice", "mushroom"]
+    # analyze_accuracies(datasets_names, test_on_train=True)
 
-# splits and balances the dataset
-dataset_name = "gender_voice"
-train_set, test_set = dt.load_dataset(dataset_name, 70, standardize=True)
+    dataset_name = "gender_voice"
 
-clf = Perceptron.Perceptron(dataset_name,
-                            train_set[:, :-1],
-                            train_set[:, -1],
-                            _kernel_=1, epochs=10,
-                            _sigma_=5, _dim_=5)
+    # splits and balances the dataset
+    train_set, test_set = dt.load_dataset(dataset_name, 70, standardize=True)
 
-clf.fit()
-predicted = clf.predict_set(train_set[:, :-1], train_set[:, -1])
-accuracy = clf.accuracy(train_set[:, -1], predicted)
-# print("Kernel Accuracy: " + str(accuracy))
-print("Kernel Best Accuracy with 10 maximum epochs: ", best_epoch(clf, test_set, 10))
+    # print(dt.verify_linear_separability(train_set, test_set))
 
-'''
-# full_dataset is used to plot graphs
-full_dataset = np.vstack((train_set, test_set))
-X = full_dataset[:, :-1]
-Y = full_dataset[:, -1]
+    clf = Perceptron.Perceptron(dataset_name,
+                                train_set[:, :-1],
+                                train_set[:, -1],
+                                _kernel_=1, epochs=10,
+                                _sigma_=0, _dim_=0)
 
-# plotter functions to visualize the dataset and the hyperplane
-Plotter.plot_3d(clf, X, Y)
-Plotter.plot_2d(clf, X, Y)
-'''
+    clf.fit()
+    predicted = clf.predict_set(train_set[:, :-1], train_set[:, -1])
+    accuracy = clf.accuracy(train_set[:, -1], predicted)
+    print("Kernel ", clf.kernel, " accuracy: " + str(accuracy))
+    # print("Kernel ", clf.kernel, " Best Accuracy with 10 maximum epochs: ", best_epoch(clf, test_set, 10))
 
-'''
-# plots dataset with seaborn
-sns.set(style="ticks", color_codes=True)
-tmp_dataset = np.loadtxt("ml_datasets/mushroom_dataset.csv", delimiter=',', dtype=str)
-tmp_dataset = tmp_dataset[0, :]
+    '''
+    # full_dataset is used to plot graphs
+    full_dataset = np.vstack((train_set, test_set))
+    X = full_dataset[:, :-1]
+    Y = full_dataset[:, -1]
+    
+    # plotter functions to visualize the dataset and the hyperplane
+    Plotter.plot_3d(clf, X, Y)
+    Plotter.plot_2d(clf, X, Y)
+    '''
+
+    '''
+    # plots dataset with seaborn
+    sns.set(style="ticks", color_codes=True)
+    tmp_dataset = np.loadtxt("ml_datasets/mushroom_dataset.csv", delimiter=',', dtype=str)
+    tmp_dataset = tmp_dataset[0, :]
+    
+    
+    df = pd.DataFrame(data=full_dataset, columns=tmp_dataset)
+    df.dropna(inplace=True)
+    sns.pairplot(df, vars=["cap-shape", "cap-surface", "cap-color"], hue='mushroom', corner=True)
+    # plt.savefig("Pictures/" + str(dataset_name) + " scatterplot.png")
+    plt.show()
+    '''
+
+    '''
+    clf = SkPerceptron(tol=1e-3, random_state=0)
+    clf.fit(train_set[:, :-1], train_set[:, -1])
+    print("Sk Perceptron: ", clf.score(test_set[:, :-1], test_set[:, -1]) * 100)
+    '''
 
 
-df = pd.DataFrame(data=full_dataset, columns=tmp_dataset)
-df.dropna(inplace=True)
-sns.pairplot(df, vars=["cap-shape", "cap-surface", "cap-color"], hue='mushroom', corner=True)
-# plt.savefig("Pictures/" + str(dataset_name) + " scatterplot.png")
-plt.show()
-'''
-
-'''
-clf = SkPerceptron(tol=1e-3, random_state=0)
-clf.fit(train_set[:, :-1], train_set[:, -1])
-print("Sk Perceptron: ", clf.score(test_set[:, :-1], test_set[:, -1]) * 100)
-'''
+if __name__ == "__main__":
+    main()
