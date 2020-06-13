@@ -7,7 +7,6 @@
 /ml_datasets/bank_marketing_dataset.csv
 /ml_datasets/gender_voice_dataset.csv
 /gram_mat_gender_voice_dataset.csv
-/ShittyTests.py
 /gram_mat_gender_voice_dataset_linear.csv
 /mushroom/
 /gender_voice/
@@ -21,3 +20,4 @@
 /census_income/types.csv
 /LaTex/images/accu_test_set.png
 /mushroom/types.csv
+/Latex/Report.pdf
