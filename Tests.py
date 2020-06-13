@@ -139,11 +139,11 @@ def analyze_accuracies(datasets_names, test_on_train=False):
     fig.tight_layout()
 
     if not test_on_train:
-        ax.set_title('Comparison between kernels')
+        # ax.set_title('Comparison between kernels')
         plt.savefig("Accuracies.png")
 
     else:
-        ax.set_title('Prediction on the train set')
+        # ax.set_title('Prediction on the train set')
         plt.savefig("test_on_train.png")
 
     plt.show()
@@ -154,7 +154,7 @@ def main():
     # kernels: 1: Linear, 2: Poly, 3: Gaussian
 
     # datasets_names = ["bank_marketing", "gender_voice", "mushroom"]
-    # analyze_accuracies(datasets_names, test_on_train=True)
+    # analyze_accuracies(datasets_names, test_on_train=False)
 
     dataset_name = "gender_voice"
 
