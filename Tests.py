@@ -75,6 +75,7 @@ def test_for_each_kernel(dataset_name, train_set, test_set, max_epochs, test_on_
 
 def test_for_each_dataset(max_epochs, dataset_names, test_on_train):
     '''
+    TODO: find a better name
     best_accuracies_per_kernel_per_dataset is meant to be a list of
     dictionaries that contain for keys the kernel type
     and for values the relative accuracy
@@ -166,12 +167,12 @@ def main():
     clf = Perceptron.Perceptron(dataset_name,
                                 train_set[:, :-1],
                                 train_set[:, -1],
-                                _kernel_=1, epochs=10,
-                                _sigma_=0, _dim_=0)
+                                _kernel_=3, epochs=10,
+                                _sigma_=5, _dim_=5)
 
     clf.fit()
-    predicted = clf.predict_set(train_set[:, :-1], train_set[:, -1])
-    accuracy = clf.accuracy(train_set[:, -1], predicted)
+    predicted = clf.predict_set(test_set[:, :-1], test_set[:, -1])
+    accuracy = clf.accuracy(test_set[:, -1], predicted)
     print("Kernel ", clf.kernel, " accuracy: " + str(accuracy))
     # print("Kernel ", clf.kernel, " Best Accuracy with 10 maximum epochs: ", best_epoch(clf, test_set, 10))
 

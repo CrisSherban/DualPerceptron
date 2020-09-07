@@ -1,5 +1,8 @@
 # DualPerceptron
 
+### Disclaimer
+This is a work in progress, coming soon: K-Fold Cross Validation
+
 ### Documentation & Citations
 Documentation of the study and the complete list of citations and credits are
 available in [Report.pdf](https://github.com/CrisSherban/DualPerceptron/blob/master/Report.pdf)
